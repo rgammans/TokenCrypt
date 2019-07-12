@@ -1,0 +1,9 @@
+*.sw?
+*.pyc
+__pycache__/*
+*~
+
+build/
+dist/
+demo/
+*.egg-info/
