@@ -1,8 +1,21 @@
 import unittest
 import unittest.mock
+import os
+
+import PyKCS11
 
 import TokenCrypt.pkcs11 as mut
 
+
+## Use the opensc-pkcs11 library for testing.,
+#  in the few tests which hit the backend.
+#
+# ( It's useful that some do; as that validates
+#   the API rather than assuming our mocking is
+#   correct
+#  )
+#
+PyKCSS11_SOLIB='/usr/lib/x86_64-linux-gnu/opensc-pkcs11.so'
 
 class PyKCSS11_Classtests(unittest.TestCase):
 
@@ -11,6 +24,19 @@ class PyKCSS11_Classtests(unittest.TestCase):
         with unittest.mock.patch('PyKCS11.PyKCS11Lib' ):
             out = mut.Algorithm(slot = unittest.mock.sentinel.SLOT )
         self.assertEqual(out.slot, unittest.mock.sentinel.SLOT )
+
+    def test_class_default_key_index_is_zero(self,):
+        with unittest.mock.patch('PyKCS11.PyKCS11Lib' ):
+            out = mut.Algorithm(slot = unittest.mock.sentinel.SLOT )
+        self.assertEqual(out.key, 0 )
+
+
+    def test_class_accept_alternate_lokup_key_for_provkey(self,):
+        with unittest.mock.patch('PyKCS11.PyKCS11Lib' ):
+            out = mut.Algorithm(key = unittest.mock.sentinel.KEY ,slot = 0)
+        self.assertEqual(out.key, unittest.mock.sentinel.KEY )
+
+
 
     def test_class_accepts_zero_as_valid_slot(self,):
         with unittest.mock.patch('PyKCS11.PyKCS11Lib' ) as x,\
@@ -130,15 +156,99 @@ class PyKCSS11_Classtests(unittest.TestCase):
          lib.load.assert_called_once()
 
 
-    @unittest.skip('nyi')
+
+class PyKCSS11_InstanceTests(unittest.TestCase):
+
+    def setUp(self,):
+        self.slot = 0
+        self.pin = unittest.mock.sentinel.PIN
+        try:
+            os.environ['PYKCS11LIB']
+        except KeyError:
+            os.environ['PYKCS11LIB'] = PyKCSS11_SOLIB
+        self.out = mut.Algorithm(slot  = self.slot )
+
+    def test_classes__enter__method_calls_open(self,):
+        with unittest.mock.patch.object(self.out,'open') as opensession:
+            rv = self.out.__enter__(self.pin)
+
+        opensession.assert_called_once()
+        self.assertIs(rv,self.out)
+
+
+    def test_open_method_creates_a_session_and_unlocks_with_a_pin(self,):
+        session  = unittest.mock.MagicMock()
+        with unittest.mock.patch.object(self.out.lib,'openSession', 
+                                       return_value = session) as openSes:
+
+           rv = self.out.open(self.pin)
+
+        openSes.assert_called_with( self.slot, PyKCS11.CKF_SERIAL_SESSION | PyKCS11.CKF_RW_SESSION )
+        session.login.assert_called_with(self.pin)
+
+    def test_open_method_call_a_s_second_time_raises_an_exception(self,):
+        session  = unittest.mock.MagicMock()
+        with unittest.mock.patch.object(self.out.lib,'openSession', 
+                                       return_value = session) as openSes:
+
+            rv = self.out.open(self.pin)
+            with self.assertRaises(mut.SessionAlreadyOpen):
+                rv = self.out.open(self.pin)
+
+        openSes.assert_called_with( self.slot, PyKCS11.CKF_SERIAL_SESSION | PyKCS11.CKF_RW_SESSION )
+        session.login.assert_called_with(self.pin)
+        session.login.assert_called_once()
+
+
+    def test_classes_exit_method_calls_close(self,):
+        with unittest.mock.patch.object(self.out,'close') as closesession:
+            rv = self.out.__exit__(None,None,None)
+
+        closesession.assert_called_once()
+        self.assertEqual(bool(rv), False)
+
+
+    def test_class_close_method_raises_if_session_not_open(self,):
+        with self.assertRaises(mut.SessionNotOpen):
+            self.out.close()
+
+
     def test_class_close_method_closes_session(self,):
-        self.fail()
+        session = unittest.mock.MagicMock()
+        self.out.session = session
+        self.out.close()
+        session.logout.assert_called_once()
+        session.closeSession.assert_called_once()
+        self.assertIs(self.out.session, None)
+        self.assertIs(self.out._privkey, None)
 
-    @unittest.skip('nyi')
-    def test_classes__enter__method_inits_session(self,):
-        self.fail()
 
-    @unittest.skip('nyi')
-    def test_classes_sexit_method_calls_close(self,):
-        self.fail()
+    def test__private_getprivkey_gets_the_asked_for_key_when_called_the_first_time(self,):
+        session = unittest.mock.MagicMock()
+        session.findObjects = unittest.mock.MagicMock(return_value = [ unittest.mock.sentinel.PRIVKEY])
+        self.out.session = session
+        rv = self.out.privkey
+        session.findObjects.assert_called_with([(PyKCS11.CKA_CLASS, PyKCS11.CKO_PRIVATE_KEY)])
+        self.assertEqual(rv, unittest.mock.sentinel.PRIVKEY)
+        self.assertEqual(self.out._privkey, unittest.mock.sentinel.PRIVKEY)
 
+
+    def test__private_getprivkey_gets_the_asked_for_key_when_called_the_first_time(self,):
+        session = unittest.mock.MagicMock()
+        session.findObjects = unittest.mock.MagicMock(return_value = [ unittest.mock.sentinel.PRIVKEY])
+        self.out.session = session
+        rv = self.out.privkey
+        rv = self.out.privkey
+        session.findObjects.assert_called_once()
+        self.assertEqual(rv, unittest.mock.sentinel.PRIVKEY)
+
+
+
+    def test__private_getprivkey_gets_the_asked_for_key_when_its_Not_idx_0(self,):
+        session = unittest.mock.MagicMock()
+        self.out.key = 1
+        session.findObjects = unittest.mock.MagicMock(return_value = [None, unittest.mock.sentinel.PRIVKEY])
+        self.out.session = session
+        rv = self.out.privkey
+        self.assertEqual(rv, unittest.mock.sentinel.PRIVKEY)
+        self.assertEqual(self.out._privkey, unittest.mock.sentinel.PRIVKEY)
