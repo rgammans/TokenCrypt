@@ -37,10 +37,15 @@ class PyKCSS11_Classtests(unittest.TestCase):
         self.assertEqual(out.key, unittest.mock.sentinel.KEY )
 
 
+    def test_class_accepts_a_pin_for_unlocking_thekey(self,):
+        with unittest.mock.patch('PyKCS11.PyKCS11Lib' ):
+            out = mut.Algorithm(pin = unittest.mock.sentinel.PIN ,slot = 0)
+        self.assertEqual(out.pin, unittest.mock.sentinel.PIN )
+
 
     def test_class_accepts_zero_as_valid_slot(self,):
         with unittest.mock.patch('PyKCS11.PyKCS11Lib' ) as x,\
-             unittest.mock.patch.object(mut.Algorithm,'_resolve_slot', 
+             unittest.mock.patch.object(mut.Algorithm,'_resolve_slot',
             return_value=unittest.mock.sentinel.SLOT ) as x:
 
             out = mut.Algorithm(slot = 0 )
@@ -169,8 +174,9 @@ class PyKCSS11_InstanceTests(unittest.TestCase):
         self.out = mut.Algorithm(slot  = self.slot )
 
     def test_classes__enter__method_calls_open(self,):
+        self.out.pin = self.pin
         with unittest.mock.patch.object(self.out,'open') as opensession:
-            rv = self.out.__enter__(self.pin)
+            rv = self.out.__enter__()
 
         opensession.assert_called_once()
         self.assertIs(rv,self.out)
@@ -178,7 +184,7 @@ class PyKCSS11_InstanceTests(unittest.TestCase):
 
     def test_open_method_creates_a_session_and_unlocks_with_a_pin(self,):
         session  = unittest.mock.MagicMock()
-        with unittest.mock.patch.object(self.out.lib,'openSession', 
+        with unittest.mock.patch.object(self.out.lib,'openSession',
                                        return_value = session) as openSes:
 
            rv = self.out.open(self.pin)
@@ -188,7 +194,7 @@ class PyKCSS11_InstanceTests(unittest.TestCase):
 
     def test_open_method_call_a_s_second_time_raises_an_exception(self,):
         session  = unittest.mock.MagicMock()
-        with unittest.mock.patch.object(self.out.lib,'openSession', 
+        with unittest.mock.patch.object(self.out.lib,'openSession',
                                        return_value = session) as openSes:
 
             rv = self.out.open(self.pin)

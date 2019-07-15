@@ -12,6 +12,7 @@ class Algorithm:
 
         self.slot = kwargs.get('slot', None)
         self.key  = kwargs.get('key', 0)
+        self.pin  = kwargs.get('pin', None )
 
         self.session = None
         self._privkey = None
@@ -54,15 +55,19 @@ class Algorithm:
     def __exit__(self, et,ev, tb):
         self.close()
 
-    def open(self, pin ):
+    def open(self, pin = None):
         if self.session is not None:
             raise SessionAlreadyOpen(self.session)
+
+        if pin is None:
+            pin = self.pin
+
 
         self.session = self.lib.openSession( self.slot , PyKCS11.CKF_SERIAL_SESSION | PyKCS11.CKF_RW_SESSION)
         self.session.login( pin )
 
-    def __enter__(self, pin):
-        self.open(pin)
+    def __enter__(self, ):
+        self.open(self.pin)
         return self
 
 
