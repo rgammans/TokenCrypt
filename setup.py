@@ -9,6 +9,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
+    python_requires='>3.6.0',
     name='tokencrypt',
     version='0.1.0',
     description='PKCS11 Keys classes for cryptography',
@@ -26,7 +27,6 @@ setup(
         # Pick your license as you wish
         'License :: OSI Approved :: MIT License',
         #Version of Python we know work.
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
