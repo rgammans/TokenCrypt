@@ -26,57 +26,57 @@ class PyKCSS11_Classtests(unittest.TestCase):
 
     def test_class_accepts_a_slot(self,):
         with unittest.mock.patch('PyKCS11.PyKCS11Lib' ):
-            out = mut.Algorithm(slot = unittest.mock.sentinel.SLOT )
+            out = mut.RSAPrivateToken(slot = unittest.mock.sentinel.SLOT )
         self.assertEqual(out.slot, unittest.mock.sentinel.SLOT )
 
     def test_class_is_subclassed_from_crypto(self,):
-        self.assertTrue(issubclass( mut.Algorithm , rsa.RSAPrivateKey ))
+        self.assertTrue(issubclass( mut.RSAPrivateToken , rsa.RSAPrivateKey ))
 
     def test_class_default_key_index_is_zero(self,):
         with unittest.mock.patch('PyKCS11.PyKCS11Lib' ):
-            out = mut.Algorithm(slot = unittest.mock.sentinel.SLOT )
+            out = mut.RSAPrivateToken(slot = unittest.mock.sentinel.SLOT )
         self.assertEqual(out.key, 0 )
 
 
     def test_class_accept_alternate_lokup_key_for_provkey(self,):
         with unittest.mock.patch('PyKCS11.PyKCS11Lib' ):
-            out = mut.Algorithm(key = unittest.mock.sentinel.KEY ,slot = 0)
+            out = mut.RSAPrivateToken(key = unittest.mock.sentinel.KEY ,slot = 0)
         self.assertEqual(out.key, unittest.mock.sentinel.KEY )
 
 
     def test_class_accepts_a_pin_for_unlocking_thekey(self,):
         with unittest.mock.patch('PyKCS11.PyKCS11Lib' ):
-            out = mut.Algorithm(pin = unittest.mock.sentinel.PIN ,slot = 0)
+            out = mut.RSAPrivateToken(pin = unittest.mock.sentinel.PIN ,slot = 0)
         self.assertEqual(out.pin, unittest.mock.sentinel.PIN )
 
 
     def test_class_accepts_zero_as_valid_slot(self,):
         with unittest.mock.patch('PyKCS11.PyKCS11Lib' ) as x,\
-             unittest.mock.patch.object(mut.Algorithm,'_resolve_slot',
+             unittest.mock.patch.object(mut.RSAPrivateToken,'_resolve_slot',
             return_value=unittest.mock.sentinel.SLOT ) as x:
 
-            out = mut.Algorithm(slot = 0 )
+            out = mut.RSAPrivateToken(slot = 0 )
         self.assertEqual(out.slot, 0)
         x.assert_not_called()
 
 
     def test_class_creates_its_own_libary_handle(self,):
         with unittest.mock.patch('PyKCS11.PyKCS11Lib') as x:
-            out = mut.Algorithm(slot=0 )
+            out = mut.RSAPrivateToken(slot=0 )
 
         x.assert_called_once()
 
     def test_class_accepts_a_token_argument_to_match_info_against(self,):
         with unittest.mock.patch('PyKCS11.PyKCS11Lib' ) as x,\
-             unittest.mock.patch.object(mut.Algorithm, '_resolve_slot', return_value=unittest.mock.sentinel.SLOTX ):
-            out = mut.Algorithm(token = unittest.mock.sentinel.TOKEN1 )
+             unittest.mock.patch.object(mut.RSAPrivateToken, '_resolve_slot', return_value=unittest.mock.sentinel.SLOTX ):
+            out = mut.RSAPrivateToken(token = unittest.mock.sentinel.TOKEN1 )
         self.assertEqual(out.slot, unittest.mock.sentinel.SLOTX )
 
     def test_dunder_resolve_slot_gets_list_of_slots_the_slot_data(self,):
         lib =  unittest.mock.MagicMock()
         with unittest.mock.patch('PyKCS11.PyKCS11Lib', return_value = lib):
             try:
-                out = mut.Algorithm(token = unittest.mock.sentinel.TOKEN2 )
+                out = mut.RSAPrivateToken(token = unittest.mock.sentinel.TOKEN2 )
             except LookupError:pass
         lib.getSlotList.assert_called_once()
 
@@ -88,7 +88,7 @@ class PyKCSS11_Classtests(unittest.TestCase):
         lib.getSlotList = unittest.mock.MagicMock(return_value = avail_slots)
         with unittest.mock.patch('PyKCS11.PyKCS11Lib', return_value = lib):
             try:
-                out = mut.Algorithm(token = {'x':unittest.mock.sentinel.TOKEN2} )
+                out = mut.RSAPrivateToken(token = {'x':unittest.mock.sentinel.TOKEN2} )
             except LookupError:pass
         lib.get_tokeninfo.assert_has_calls([ unittest.mock.call(s) for s in  avail_slots] )
 
@@ -101,7 +101,7 @@ class PyKCSS11_Classtests(unittest.TestCase):
         lib.getSlotList = unittest.mock.MagicMock(return_value = avail_slots)
         lib.get_tokeninfo = unittest.mock.MagicMock( side_effect = slot_data )
         with unittest.mock.patch('PyKCS11.PyKCS11Lib', return_value = lib):
-            out = mut.Algorithm(token = {'serialnr':'123','manufacturer':'acme'} )
+            out = mut.RSAPrivateToken(token = {'serialnr':'123','manufacturer':'acme'} )
 
         lib.get_tokeninfo.assert_has_calls([ unittest.mock.call(s) for s in  avail_slots] )
         self.assertEqual(out.slot, 1 )
@@ -116,7 +116,7 @@ class PyKCSS11_Classtests(unittest.TestCase):
         lib.getSlotList = unittest.mock.MagicMock(return_value = avail_slots)
         lib.get_tokeninfo = unittest.mock.MagicMock( side_effect = slot_data )
         with unittest.mock.patch('PyKCS11.PyKCS11Lib', return_value = lib):
-            out = mut.Algorithm(token = {'serialnr':'456','manufacturer':'acme'} , )
+            out = mut.RSAPrivateToken(token = {'serialnr':'456','manufacturer':'acme'} , )
 
         lib.get_tokeninfo.assert_has_calls([ unittest.mock.call(s) for s in  avail_slots] )
         self.assertEqual(out.slot, 0 )
@@ -131,7 +131,7 @@ class PyKCSS11_Classtests(unittest.TestCase):
         lib.get_tokeninfo = unittest.mock.MagicMock( side_effect = slot_data )
         with unittest.mock.patch('PyKCS11.PyKCS11Lib', return_value = lib):
             with self.assertRaises(mut.MultipleMatchingTokens):
-                out = mut.Algorithm(token = {'serialnr':'456','manufacturer':'acme'} , )
+                out = mut.RSAPrivateToken(token = {'serialnr':'456','manufacturer':'acme'} , )
 
     def test_dunder_resolve_slot_raises_if_there_are_No_matches(self,):
         slot_data =  [{'serialnr':'456','manufacturer':'acme'}, {'serialnr':'456','manufacturer':'acme'} ]
@@ -142,7 +142,7 @@ class PyKCSS11_Classtests(unittest.TestCase):
         lib.get_tokeninfo = unittest.mock.MagicMock( side_effect = slot_data )
         with unittest.mock.patch('PyKCS11.PyKCS11Lib', return_value = lib):
             with self.assertRaises(mut.NoMatchingTokens):
-                out = mut.Algorithm(token = {'serialnr':'12','manufacturer':'acme'} , )
+                out = mut.RSAPrivateToken(token = {'serialnr':'12','manufacturer':'acme'} , )
 
 
     def test_dunder_resolve_slot_choses_slot_1_0_only_the_index_zero_an_obsuce_tag(self,):
@@ -154,7 +154,7 @@ class PyKCSS11_Classtests(unittest.TestCase):
         lib.getSlotList = unittest.mock.MagicMock(return_value = avail_slots)
         lib.get_tokeninfo = unittest.mock.MagicMock( side_effect = slot_data )
         with unittest.mock.patch('PyKCS11.PyKCS11Lib', return_value = lib):
-            out = mut.Algorithm(token = {'xyzzy':1} )
+            out = mut.RSAPrivateToken(token = {'xyzzy':1} )
 
         lib.get_tokeninfo.assert_has_calls([ unittest.mock.call(s) for s in  avail_slots] )
         self.assertEqual(out.slot, 0 )
@@ -163,7 +163,7 @@ class PyKCSS11_Classtests(unittest.TestCase):
     def test_class_ctor_loads_the_wrapped_library(self,):
          lib  = unittest.mock.MagicMock()
          with unittest.mock.patch('PyKCS11.PyKCS11Lib', return_value = lib) as x:
-            out = mut.Algorithm(slot=0 )
+            out = mut.RSAPrivateToken(slot=0 )
 
          lib.load.assert_called_once()
 
@@ -178,7 +178,7 @@ class PyKCSS11_InstanceTests(unittest.TestCase):
             os.environ['PYKCS11LIB']
         except KeyError:
             os.environ['PYKCS11LIB'] = PyKCSS11_SOLIB
-        self.out = mut.Algorithm(slot  = self.slot )
+        self.out = mut.RSAPrivateToken(slot  = self.slot )
 
     def test_classes__enter__method_calls_open(self,):
         self.out.pin = self.pin

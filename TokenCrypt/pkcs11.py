@@ -7,7 +7,7 @@ class SessionNotOpen(RuntimeError):pass
 
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 
-class Algorithm(RSAPrivateKey):
+class RSAPrivateToken(RSAPrivateKey):
     def __init__(self, *args, **kwargs):
         self.lib = PyKCS11.PyKCS11Lib()
         self.lib.load()
