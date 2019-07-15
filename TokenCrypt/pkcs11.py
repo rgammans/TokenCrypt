@@ -108,5 +108,15 @@ class Algorithm(RSAPrivateKey):
         """
         Signs the data.
         """
-        raise NotImplementedError()
+        if self.session is None:
+            raise SessionNotOpen()
+
+        ## WE only support SHA1/PKCS1v15 at the moment.
+        #  and have no sanity checking
+        #  FIXME
+        mechanism = PyKCS11.Mechanism(PyKCS11.CKM_SHA1_RSA_PKCS, None)
+        signature = self.session.sign(self.privkey, data, mechanism )
+
+
+        return bytes(signature)
 

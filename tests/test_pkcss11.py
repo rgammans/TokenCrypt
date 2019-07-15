@@ -3,7 +3,10 @@ import unittest.mock
 import os
 
 import PyKCS11
-from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
+import cryptography.hazmat.primitives.asymmetric.rsa as rsa
+import cryptography.hazmat.primitives.asymmetric.padding as padding
+import cryptography.hazmat.primitives.hashes as hashes
+#from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 
 import TokenCrypt.pkcs11 as mut
 
@@ -27,7 +30,7 @@ class PyKCSS11_Classtests(unittest.TestCase):
         self.assertEqual(out.slot, unittest.mock.sentinel.SLOT )
 
     def test_class_is_subclassed_from_crypto(self,):
-        self.assertTrue(issubclass( mut.Algorithm , RSAPrivateKey ))
+        self.assertTrue(issubclass( mut.Algorithm , rsa.RSAPrivateKey ))
 
     def test_class_default_key_index_is_zero(self,):
         with unittest.mock.patch('PyKCS11.PyKCS11Lib' ):
@@ -262,3 +265,45 @@ class PyKCSS11_InstanceTests(unittest.TestCase):
         rv = self.out.privkey
         self.assertEqual(rv, unittest.mock.sentinel.PRIVKEY)
         self.assertEqual(self.out._privkey, unittest.mock.sentinel.PRIVKEY)
+
+    def test__signing_function_rasies_an_error_if_no_open_session(self,):
+        data = b'qwertyuiop'
+        shash = hashes.SHA1()
+        spadding = padding.PKCS1v15()
+
+        self.out._privkey = unittest.mock.sentinel.PRIVKEY
+
+        with self.assertRaises(mut.SessionNotOpen):
+            with unittest.mock.patch('PyKCS11.Mechanism', 
+                                 return_value = unittest.mock.sentinel.MECHANISM) as get_mech:
+
+
+                rv = self.out.sign( data, spadding, shash)
+
+
+    def test__signing_function_gets_the_SHA1_PKCS_mech_when_asked(self,):
+        """The signing function gets the SHA1 PKCS mechanism ( CKM_SHA1_RSA_PKCS )
+        when called with SHA1 as the hash algorithm  and pkcs1,5 as the
+        padding akgorithm"""
+
+        shash = hashes.SHA1()
+        spadding = padding.PKCS1v15()
+        fake_signature = [ 0, 1, 2, 3]
+        data = b'qwertyuiop'
+
+        session = unittest.mock.MagicMock()
+        session.sign = unittest.mock.MagicMock( return_value = fake_signature)
+        self.out.session = session
+        self.out._privkey = unittest.mock.sentinel.PRIVKEY
+
+        with unittest.mock.patch('PyKCS11.Mechanism', 
+                                 return_value = unittest.mock.sentinel.MECHANISM) as get_mech:
+
+
+            rv = self.out.sign( data, spadding, shash)
+
+
+        get_mech.assert_called_with(PyKCS11.CKM_SHA1_RSA_PKCS, None)
+        session.sign.assert_called_with(unittest.mock.sentinel.PRIVKEY, data, unittest.mock.sentinel.MECHANISM )
+        self.assertEqual(rv, bytes(fake_signature))
+
