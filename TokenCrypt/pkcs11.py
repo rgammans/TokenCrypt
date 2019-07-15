@@ -5,7 +5,9 @@ class NoMatchingTokens(LookupError):pass
 class SessionAlreadyOpen(RuntimeError):pass
 class SessionNotOpen(RuntimeError):pass
 
-class Algorithm:
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
+
+class Algorithm(RSAPrivateKey):
     def __init__(self, *args, **kwargs):
         self.lib = PyKCS11.PyKCS11Lib()
         self.lib.load()
@@ -78,4 +80,33 @@ class Algorithm:
             self._privkey  = keys[self.key]
         return self._privkey
 
+    def signer(self, padding, algorithm):
+        """
+        Returns an AsymmetricSignatureContext used for signing data.
+        """
+        raise NotImplementedError()
+
+    def decrypt(self, ciphertext, padding):
+        """
+        Decrypts the provided ciphertext.
+        """
+        raise NotImplementedError()
+
+    def key_size(self):
+        """
+        The bit length of the public modulus.
+        """
+        self.privkey.to_dict()['CKA_MODULUS_BITS']
+
+    def public_key(self):
+        """
+        The RSAPublicKey associated with this private key.
+        """
+        raise NotImplementedError()
+
+    def sign(self, data, padding, algorithm):
+        """
+        Signs the data.
+        """
+        raise NotImplementedError()
 

@@ -3,6 +3,7 @@ import unittest.mock
 import os
 
 import PyKCS11
+from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey
 
 import TokenCrypt.pkcs11 as mut
 
@@ -24,6 +25,9 @@ class PyKCSS11_Classtests(unittest.TestCase):
         with unittest.mock.patch('PyKCS11.PyKCS11Lib' ):
             out = mut.Algorithm(slot = unittest.mock.sentinel.SLOT )
         self.assertEqual(out.slot, unittest.mock.sentinel.SLOT )
+
+    def test_class_is_subclassed_from_crypto(self,):
+        self.assertTrue(issubclass( mut.Algorithm , RSAPrivateKey ))
 
     def test_class_default_key_index_is_zero(self,):
         with unittest.mock.patch('PyKCS11.PyKCS11Lib' ):
