@@ -3,6 +3,7 @@
 __pycache__/*
 *~
 .tox/*
+.eggs/
 
 
 build/
