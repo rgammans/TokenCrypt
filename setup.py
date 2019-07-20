@@ -11,7 +11,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 setup(
     python_requires='>3.6.0',
     name='tokencrypt',
-    version='0.1.1',
+    version='0.1.2',
     description='PKCS11 Keys classes for cryptography',
     long_description=long_description,
     url='https://github.com/rgammans/TokenCrypt',
