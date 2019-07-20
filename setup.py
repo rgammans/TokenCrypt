@@ -11,11 +11,11 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 setup(
     python_requires='>3.6.0',
     name='tokencrypt',
-    version='0.1.0',
+    version='0.1.1',
     description='PKCS11 Keys classes for cryptography',
     long_description=long_description,
-    #url='https://github.com/gammascience/pricert',
-    author='Gamma Science Ltd',
+    url='https://github.com/rgammans/TokenCrypt',
+    author='Roger Gammans',
     author_email='rgammans@gammascience.co.uk',
     classifiers=[  # Optional
         'Development Status :: 3 - Alpha',
