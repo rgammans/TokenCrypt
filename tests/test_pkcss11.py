@@ -180,7 +180,7 @@ class PyKCSS11_InstanceTests(unittest.TestCase):
             os.environ['PYKCS11LIB'] = PyKCSS11_SOLIB
         self.out = mut.RSAPrivateToken(slot  = self.slot )
 
-    def test_classes__enter__method_calls_open(self,):
+    def test_classes__enter__method_calls_open_and_returns_self(self,):
         self.out.pin = self.pin
         with unittest.mock.patch.object(self.out,'open') as opensession:
             rv = self.out.__enter__()
